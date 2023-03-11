@@ -7,13 +7,15 @@
 import time, os
 
 from pathlib import Path
-import requests
-from bs4 import BeautifulSoup
+import requests # HTTP 요청을 보낼 수 있도록 기능을 제공
+from bs4 import BeautifulSoup # 웹 페이지의 정보를 쉽게 스크랩할 수 있도록 기능을 제공하는 라이브러리
 import shutil
 
 import speech_recognition as sr
 from gtts import gTTS
 from playsound import playsound
+
+import re
 
 # 음성인식(듣기, STT)
 def listen(recognizer, audio):
@@ -29,9 +31,9 @@ def listen(recognizer, audio):
 
 def weather_info() :                                                                                                           
                                                                                                                                
-    url_weather = 'https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=%EB%82%A0%EC%94%A8' # 네이버 날씨  
-    html = requests.get(url_weather)                                                                                           
-    soup = BeautifulSoup(html.text, 'html.parser')                                                                             
+    url_weather = r"https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=%EB%82%A0%EC%94%A8" # 네이버 날씨  
+    html = requests.get(url_weather) # 데이터 보내기                                                                                          
+    soup = BeautifulSoup(html.text, 'html.parser')  # 응답받은 HTML 내용을 BeautifulSoup 클래스의 객체 형태로 생성/반환                                                                          
                                                                                                                                
     #지역                                                                                                                      
     location = soup.find('div', {'class': 'title_area _area_panel'}).find('h2', 'title').text                                  
@@ -49,10 +51,28 @@ def weather_info() :
     #미세먼지                                                                                                                  
     report = weather.find('ul',  {'today_chart_list'}).text.strip()                                                            
                                                                                                                                
-    today = "오늘 {0} 날씨입니다. 현재 온도는 {1}도, 체감 온도는 {2}도, 습도 {3} 입니다.".format(location, temp, term1, term2) 
+    today = f'오늘 {location} 날씨입니다. 현재 온도는 {temp}도, 체감 온도는 {term1}도, 습도 {term2} 입니다.'
     today = today + report + "입니다. 오늘의 날씨 정보였습니다."                                                               
                                                                                                                                
     return today   
+
+def exchange_rate_info() :                                                                                                           
+                                                                                                                               
+    url_exchange_rate = r"https://finance.naver.com/marketindex/" # 네이버 환율  
+    html = requests.get(url_exchange_rate) # 데이터 요청                                                                                         
+    soup = BeautifulSoup(html.text, 'html.parser')  # 응답받은 HTML 내용을 BeautifulSoup 클래스의 객체 형태로 생성/반환                                                                        
+                                                                                                                               
+    # 환율                                                                                                                      
+    exchange_rate = soup.find('div', {'class': 'head_info point_up'}).find('span', 'value').text  
+
+    # 증감 정보                                                                                                                
+    exchange_rate_flow_num = soup.find('div', {'class': 'head_info point_up'}).find('span', 'change').text
+    exchange_rate_flow_blind = soup.find('div', {'class': 'head_info point_up'}).find_all('span', 'blind')   
+                                                                                                          
+    exchange_rate_flow_blind_text = re.sub(r"[^ㄱ-ㅣ가-힣\s]", "", str(exchange_rate_flow_blind[1])) # 정규식을 이용해 한글만 추출                                                                                                                      
+    today_exchange_rate = f'오늘 원달러 환율 정보는 {exchange_rate} 원입니다. 전일 대비 {exchange_rate_flow_num} {exchange_rate_flow_blind_text}했습니다.'                                                              
+                                                                                                                               
+    return today_exchange_rate   
 
 # 대답(분석해서 스피커가 어떤 대답을 할지)
 def answer(input_text):
@@ -61,9 +81,9 @@ def answer(input_text):
     if '안녕' in input_text:
         answer_text = '안녕하세요? 반갑습니다.'
     elif '날씨' in input_text:
-        answer_text = '오늘의 서울 기온은 20도 입니다. 맑은 하늘이 예상됩니다.'
+        answer_text = weather_info()
     elif '환율' in input_text:
-        answer_text = '원 달러 환율은 1380원입니다.'
+        answer_text = exchange_rate_info()
     elif '고마워' in input_text:
         answer_text = '별말씀을요.'  
     elif '종료' in input_text:
@@ -83,6 +103,7 @@ def speak(text):
 
     file_name = 'voice' + f'{now_time}' + '.mp3'
     # file_name = 'voice.mp3'
+    # file_name = 'voice.mp3'
     # file_path = Path(r".\voice\\")
     file_path = r".\voice"
 
@@ -90,9 +111,10 @@ def speak(text):
     tts.save(f'{file_path}\\{file_name}')
     playsound(f'{file_path}\\{file_name}')
 
-    # if os.path.isfile(file_path): # 파일 실행 후 지우기(파일이 남아있어 권한문제가 발생해서 사용)
-    #     print(os.path.isfile(file_path))
-    #     file_path.unlink()      
+    # if os.path.isfile(f'{file_path}\\{file_name}'): # 파일 실행 후 지우기(파일이 남아있어 권한문제가 발생해서 사용)
+        
+    #     os.remove(f'{file_path}\\{file_name}')
+        # file_path.unlink()      
 
 
 file_path = r".\voice"
@@ -108,10 +130,10 @@ m = sr.Microphone() # 마이크를 통해 소리를 받을 객체 만들기
 stop_listening = r.listen_in_background(m, listen)
 print(stop_listening)
 
-if stop_listening == 'False':
+if stop_listening == False:
     if os.path.exists(file_path):
         shutil.rmtree(file_path)
 
 # 무한반복
-while True:
+while stop_listening != False:
     time.sleep(0.1)

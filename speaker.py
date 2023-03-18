@@ -114,7 +114,6 @@ def answer(input_text):
         answer_text = '다시 한 번 말씀해주시겠어요?'
 
     speak(answer_text)
-    return stop_listening
 
 # 컴퓨터가 소리내서 읽기(TTS)
 def speak(text):
@@ -123,19 +122,10 @@ def speak(text):
     now_time = time.strftime('%Y%m%d%H%M%S')
 
     file_name = 'voice' + f'{now_time}' + '.mp3'
-    # file_name = 'voice.mp3'
-    # file_name = 'voice.mp3'
-    # file_path = Path(r".\voice\\")
-    # file_path = r".\voice"
 
     tts = gTTS(text=text, lang='ko')
     tts.save(f'{file_path}\\{file_name}')
-    playsound(f'{file_path}\\{file_name}')
-
-    # if os.path.isfile(f'{file_path}\\{file_name}'): # 파일 실행 후 지우기(파일이 남아있어 권한문제가 발생해서 사용)
-        
-    #     os.remove(f'{file_path}\\{file_name}')
-        # file_path.unlink()      
+    playsound(f'{file_path}\\{file_name}')    
 
 file_path = r".\voice"
 

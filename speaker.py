@@ -90,7 +90,7 @@ def news_info() :
         title.title.replace("'","")                      
         news_data.append(title.title)         
 
-    today_news = f'오늘 주요 뉴스 3개를 알려드릴게요. 첫번째 뉴스는 {news_data[0]} 입니다. 두번째 뉴스는 {news_data[1]} 입니다. 세번째 뉴스는 {news_data[2]} 입니다. 이상입니다.'                                                   
+    today_news = f'오늘의 뉴스 3개를 알려드릴게요. 첫번째 뉴스는 {news_data[0]} 입니다. 두번째 뉴스는 {news_data[1]} 입니다. 세번째 뉴스는 {news_data[2]} 입니다. 이상입니다.'                                                   
     return today_news  
 
 # 대답(분석해서 스피커가 어떤 대답을 할지)

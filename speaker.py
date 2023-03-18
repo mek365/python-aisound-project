@@ -85,10 +85,12 @@ def news_info() :
     url = r"https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko" 
     news_data = []                                            
     news_rss = feedparser.parse(url) # 파싱                  
-    for title in news_rss.entries :  # 엔트리에 딕셔너리 형태로 데이터가 담겨져 있음                         
-        news_data.append(title.title) 
+    for title in news_rss.entries :  # 엔트리에 딕셔너리 형태로 데이터가 담겨져 있음   
+        title.title.replace('"','')
+        title.title.replace("'","")                      
+        news_data.append(title.title)         
 
-    today_news = f'오늘 주요 뉴스 3개를 알려드릴게요. {news_data[0:3]}. 이상입니다.'                                                   
+    today_news = f'오늘 주요 뉴스 3개를 알려드릴게요. 첫번째 뉴스는 {news_data[0]} 입니다. 두번째 뉴스는 {news_data[1]} 입니다. 세번째 뉴스는 {news_data[2]} 입니다. 이상입니다.'                                                   
     return today_news  
 
 # 대답(분석해서 스피커가 어떤 대답을 할지)
@@ -107,7 +109,7 @@ def answer(input_text):
         answer_text = '별말씀을요.'  
     elif '종료' in input_text:
         answer_text = '다음에 또 만나요.'   
-        stop_listening = 'X'   # 어떤 시점이 되면 듣지 않게 하기
+        stop_listening(wait_for_stop=False)   # 어떤 시점이 되면 듣지 않게 하기
     else:
         answer_text = '다시 한 번 말씀해주시겠어요?'
 
@@ -124,7 +126,7 @@ def speak(text):
     # file_name = 'voice.mp3'
     # file_name = 'voice.mp3'
     # file_path = Path(r".\voice\\")
-    file_path = r".\voice"
+    # file_path = r".\voice"
 
     tts = gTTS(text=text, lang='ko')
     tts.save(f'{file_path}\\{file_name}')
@@ -134,7 +136,6 @@ def speak(text):
         
     #     os.remove(f'{file_path}\\{file_name}')
         # file_path.unlink()      
-
 
 file_path = r".\voice"
 
@@ -148,10 +149,10 @@ m = sr.Microphone() # 마이크를 통해 소리를 받을 객체 만들기
 # 어떤 목소리가 들리면 바로 그 처리할 수 있게 도와줌
 stop_listening = r.listen_in_background(m, listen)
 
-if stop_listening == False:
-    if os.path.exists(file_path):
-        shutil.rmtree(file_path)
+# if stop_listening == False:
+#     if os.path.exists(file_path):
+#         shutil.rmtree(file_path)
 
 # 무한반복
-while stop_listening != False:
+while True:
     time.sleep(0.1)
